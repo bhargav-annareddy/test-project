@@ -1,0 +1,82 @@
+name: "[DEV] build-deploy"
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: AWS Environment
+        type: choice
+        required: true
+        options:
+          - main
+env:
+  ECR_REPO: 279273931869.dkr.ecr.us-east-1.amazonaws.com/practiclogistix-dev-repo
+  ECR_REGION: us-east-1
+  ECS_REGION: us-east-1 
+  SERVICE: practiclogistix-dev-service
+  APP: backend
+  ENV: dev
+  ECS_CLUSTER: practiclogistix-dev-cluster              
+  ECS_SERVICE: practiclogistix-dev-service       
+  #ECS_TASK_DEFINITION: .aws/task-definition.json 
+  ECS_TASK_DEFINITION: practiclogistix-dev-task
+  CONTAINER_NAME: practiclogistix-dev-container            
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+    steps:
+      - name: Branch validation
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "ERROR: Dev deployment should be from 'develop' branch!"
+          exit 1
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.ECR_REGION }}
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        run: |
+          IMAGE="${{ env.ECR_REPO }}:${{ env.ENV }}-${{ env.APP }}-${{ github.sha }}"
+          docker build -t $IMAGE .
+          docker push $IMAGE
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+  deployment:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.ECS_REGION }}
+      - name: Download current task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_TASK_DEFINITION }} \
+            --query taskDefinition \
+            > task-definition.json
+      - name: Render new image into task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ needs.build.outputs.image }}
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.ECS_SERVICE }}
+          wait-for-service-stability: true
+
