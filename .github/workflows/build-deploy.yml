@@ -9,10 +9,10 @@ on:
         options:
           - main
 env:
-  ECR_REPO: 279273931869.dkr.ecr.us-east-1.amazonaws.com/practiclogistix-dev-repo
+  ECR_REPO: 279273931869.dkr.ecr.us-east-1.amazonaws.com/paygate-prod-repo
   ECR_REGION: us-east-1
   ECS_REGION: us-east-1 
-  SERVICE: practiclogistix-dev-service
+  SERVICE: paygate-prod-backend-service
   APP: backend
   ENV: dev
   ECS_CLUSTER: paygate-prod-cluster             
