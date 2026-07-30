@@ -15,11 +15,11 @@ env:
   SERVICE: practiclogistix-dev-service
   APP: backend
   ENV: dev
-  ECS_CLUSTER: practiclogistix-dev-cluster              
-  ECS_SERVICE: practiclogistix-dev-service       
+  ECS_CLUSTER: paygate-prod-cluster             
+  ECS_SERVICE: paygate-prod-backend-service      
   #ECS_TASK_DEFINITION: .aws/task-definition.json 
-  ECS_TASK_DEFINITION: practiclogistix-dev-task
-  CONTAINER_NAME: practiclogistix-dev-container            
+  ECS_TASK_DEFINITION: paygate-prod-backend-service
+  CONTAINER_NAME: paygate-prod-backend-container            
 jobs:
   build:
     runs-on: ubuntu-latest
