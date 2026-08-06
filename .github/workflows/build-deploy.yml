@@ -9,17 +9,17 @@ on:
         options:
           - main
 env:
-  ECR_REPO: 279273931869.dkr.ecr.us-east-1.amazonaws.com/paygate-prod-repo
+  ECR_REPO: 279273931869.dkr.ecr.us-east-1.amazonaws.com/practic-dev-backend-repo
   ECR_REGION: us-east-1
   ECS_REGION: us-east-1 
-  SERVICE: paygate-prod-backend-service
+  SERVICE: practic-dev-backend-service
   APP: backend
-  ENV: prod
-  ECS_CLUSTER: paygate-prod-cluster             
-  ECS_SERVICE: paygate-prod-backend-service      
+  ENV: dev
+  ECS_CLUSTER: practic-dev-cluster             
+  ECS_SERVICE: practic-dev-backend-service     
   #ECS_TASK_DEFINITION: .aws/task-definition.json 
-  ECS_TASK_DEFINITION: paygate-prod-backend-task
-  CONTAINER_NAME: paygate-prod-backend            
+  ECS_TASK_DEFINITION: practic-dev-backend-task
+  CONTAINER_NAME: practic-dev-backend            
 jobs:
   build:
     runs-on: ubuntu-latest
